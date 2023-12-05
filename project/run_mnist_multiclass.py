@@ -189,4 +189,4 @@ class ImageTrain:
 
 if __name__ == "__main__":
     data_train, data_val = (make_mnist(0, 5000), make_mnist(10000, 10500))
-    ImageTrain().train(data_train, data_val, learning_rate=0.05)
+    ImageTrain().train(data_train, data_val, learning_rate=0.01)

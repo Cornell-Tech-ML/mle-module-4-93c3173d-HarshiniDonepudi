@@ -7,7 +7,7 @@ from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
     MAX_DIMS,
-    Index,
+    # Index,
     Shape,
     Strides,
     broadcast_index,

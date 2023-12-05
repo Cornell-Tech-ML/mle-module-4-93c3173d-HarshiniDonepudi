@@ -4,7 +4,7 @@ from . import operators
 from .autodiff import Context
 from .fast_ops import FastOps
 from .tensor import Tensor
-from .tensor_functions import Function, rand, tensor
+from .tensor_functions import Function, rand
 
 
 def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
@@ -144,11 +144,11 @@ def logsoftmax(input: Tensor, dim: int) -> Tensor:
     # TODO: Implement for Task 4.4
     max_val = max_reduce(input, dim)
     shifted_input = input - max_val
-    exps_sum = shifted_input.exp().sum(dim=dim)
+    exps = shifted_input.exp()
+    exps_sum = exps.sum(dim=dim)
     log_exps_sum = exps_sum.log()
     return shifted_input - log_exps_sum
-
-# raise NotImplementedError("Need to implement for Task 4.4")
+    # raise NotImplementedError("Need to implement for Task 4.4")
 
 
 def maxpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
