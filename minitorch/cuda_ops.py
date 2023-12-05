@@ -456,8 +456,8 @@ def _tensor_matrix_multiply(
     # TODO: Implement for Task 3.4.
     accumalated_sum = 0.0
     for block_offset in range(0, MAX_BLOCKS, BLOCK_DIM):  # iterate over each block
-        local_j_offset = block_offset + pj  # offset of local j index 
-        local_i_offset = block_offset + pi  # offset of local i index 
+        local_j_offset = block_offset + pj  # offset of local j index
+        local_i_offset = block_offset + pi  # offset of local i index
 
         # a) Copy into shared memory for a matrix.
         # Load elements of tensor 'a' into shared memory

@@ -277,8 +277,6 @@ def tensor_reduce(
     return njit(parallel=True)(_reduce)  # type: ignore
     # raise NotImplementedError("Need to implement for Task 3.1")
 
-    return njit(parallel=True)(_reduce)  # type: ignore
-
 
 def _tensor_matrix_multiply(
     out: Storage,
