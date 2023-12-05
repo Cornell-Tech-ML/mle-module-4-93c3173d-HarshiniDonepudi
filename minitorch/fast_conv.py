@@ -7,7 +7,7 @@ from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
     MAX_DIMS,
-    Index,
+    # Index,
     Shape,
     Strides,
     broadcast_index,
@@ -80,8 +80,41 @@ def _tensor_conv1d(
     s1 = input_strides
     s2 = weight_strides
 
-    # TODO: Implement for Task 4.1.
-    raise NotImplementedError("Need to implement for Task 4.1")
+    # Pre-calculate stride values that are constant within the inner loops
+    out_stride0, out_stride1, out_stride2 = out_strides
+    # Loop over the output tensor's elements.
+    for i in prange(out_size):
+        # Convert the linear index to a multi-dimensional index.
+        out_index = np.empty(MAX_DIMS, np.int32)
+        to_index(i, out_shape, out_index)
+        cur_batch, curr_out, curr_w = out_index[:len(out_shape)]
+
+        # Calculate the linear position in the output tensor.
+        out_pos = cur_batch * out_stride0 + curr_out * out_stride1 + curr_w * out_stride2
+
+        # Loop over the input channels and kernel width for convolution.
+        for curr_channel in prange(in_channels):
+            for curr_kw in range(kw):
+                # Handling reverse anchoring of the kernel.
+                adjusted_kw = kw - curr_kw - 1 if reverse else curr_kw
+
+                # Calculate the linear position in the weight tensor.
+                weight_idx = curr_out * s2[0] + curr_channel * s2[1] + adjusted_kw * s2[2]
+                accum = 0.0
+
+                # Adjusted kernel position based on 'reverse'
+                kernel_pos = curr_w - adjusted_kw if reverse else curr_w + adjusted_kw
+
+                # Perform the convolution operation based on the 'reverse' flag.
+                if 0 <= kernel_pos < width:
+                    input_idx = cur_batch * s1[0] + curr_channel * s1[1] + kernel_pos * s1[2]
+                    accum = input[input_idx]
+
+                # Update the output tensor at the calculated position.
+                out[out_pos] += accum * weight[weight_idx]
+
+# TODO: Implement for Task 4.1.
+# raise NotImplementedError("Need to implement for Task 4.1")
 
 
 tensor_conv1d = njit(parallel=True)(_tensor_conv1d)
@@ -205,9 +238,42 @@ def _tensor_conv2d(
     # inners
     s10, s11, s12, s13 = s1[0], s1[1], s1[2], s1[3]
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
-
+    out_stride0, out_stride1, out_stride2, out_stride3 = out_strides
     # TODO: Implement for Task 4.2.
-    raise NotImplementedError("Need to implement for Task 4.2")
+    for i in prange(out_size):
+        # Convert the linear index to a multi-dimensional index.
+        out_index = np.empty(MAX_DIMS, np.int32)
+        to_index(i, out_shape, out_index)
+        cur_batch, curr_out, curr_h, curr_w = out_index[:len(out_shape)]
+
+        # Calculate the linear position in the output tensor.
+        out_pos = (cur_batch * out_stride0 + curr_out * out_stride1 + curr_h * out_stride2 + curr_w * out_stride3)
+
+        # Loop over the input channels and kernel dimensions for convolution.
+        for curr_channel in prange(in_channels):
+            for curr_kh in range(kh):
+                for curr_kw in range(kw):
+                    # Handling reverse anchoring of the kernel.
+                    adjusted_kh = kh - curr_kh - 1 if reverse else curr_kh
+                    adjusted_kw = kw - curr_kw - 1 if reverse else curr_kw
+
+                    # Calculate the linear positions in the weight tensor.
+                    weight_idx = (curr_out * s20 + curr_channel * s21 + adjusted_kh * s22 + adjusted_kw * s23)
+                    accum = 0.0
+
+                    # Adjusted kernel position based on 'reverse'
+                    kernel_h_pos = curr_h - adjusted_kh if reverse else curr_h + adjusted_kh
+                    kernel_w_pos = curr_w - adjusted_kw if reverse else curr_w + adjusted_kw
+
+                    # Perform the convolution operation based on the 'reverse' flag.
+                    if 0 <= kernel_h_pos < height and 0 <= kernel_w_pos < width:
+                        input_idx = (cur_batch * s10 + curr_channel * s11 + kernel_h_pos * s12 + kernel_w_pos * s13)
+                        accum = input[input_idx]
+
+                    # Update the output tensor at the calculated position.
+                    out[out_pos] += accum * weight[weight_idx]
+
+# raise NotImplementedError("Need to implement for Task 4.2")
 
 
 tensor_conv2d = njit(parallel=True, fastmath=True)(_tensor_conv2d)

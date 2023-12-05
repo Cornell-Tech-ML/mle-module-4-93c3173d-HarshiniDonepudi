@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Tuple
+from typing import Any, Iterable, Tuple
 
 from typing_extensions import Protocol
 
@@ -22,7 +22,13 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    ls1 = [i for i in vals]
+    ls2 = [i for i in vals]
+    ls1[arg] += epsilon
+    ls2[arg] -= epsilon
+    return ((f(*ls1)) - (f(*ls2))) / (2.0 * epsilon)
+    # TODO: Implement for Task 1.1.
+    # raise NotImplementedError("Need to implement for Task 1.1")
 
 
 variable_count = 1
@@ -60,7 +66,25 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.4.
+    stack = []
+    visited = set()
+
+    def dfs(curr_var: Variable) -> None:
+        if curr_var.unique_id in visited or curr_var.is_constant():
+            return
+        for i in curr_var.parents:
+            dfs(i)
+        visited.add(curr_var.unique_id)
+        stack.append(curr_var)
+
+    dfs(variable)
+    ordering = []
+    while stack:
+        ordering.append(stack.pop())
+
+    return ordering
+    # raise NotImplementedError("Need to implement for Task 1.4")
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -74,7 +98,18 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.4.
+    sort = topological_sort(variable)
+    unique_ids = [var.unique_id for var in sort]
+    derivative = dict.fromkeys(unique_ids, 0)
+    derivative[variable.unique_id] = deriv
+    for i in sort:
+        if i.is_leaf():
+            i.accumulate_derivative(derivative[i.unique_id])
+        else:
+            for j, k in i.chain_rule(derivative.get(i.unique_id, 0)):
+                derivative[j.unique_id] = derivative.get(j.unique_id, 0) + k
+    # raise NotImplementedError("Need to implement for Task 1.4")
 
 
 @dataclass
